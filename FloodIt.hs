@@ -1,5 +1,12 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 
+-- TODO
+-- fix colouring of move count
+-- add more user help
+-- switch to IO for printing board instead of codes (windows support)
+-- split code into parts
+-- add targets/fail
+
 import qualified System.Console.ANSI as A
 import System.Random                       ( Random(..), RandomGen )
 import Control.Monad                       ( when, unless, replicateM, forever )
