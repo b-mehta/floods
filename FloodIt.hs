@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
-
 -- TODO
 -- add more user help
 -- modularise
@@ -16,7 +14,8 @@ import Control.Monad.Trans.State.Strict    ( StateT, get, evalStateT, put )
 import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Data.List.Split                     ( chunksOf )
-import Control.Arrow
+import Control.Arrow                       ( first )
+import Text.Read                           ( readMaybe ) 
 
 data Colour = Red | Green | Yellow | Blue | Magenta | White
   deriving (Bounded, Enum, Eq, Read, Show)
@@ -30,12 +29,8 @@ newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
 type Board = Grid Colour
 
 colourMap :: Colour -> A.Color
-colourMap Red = A.Red
-colourMap Green = A.Green
-colourMap Yellow = A.Yellow
-colourMap Blue = A.Blue
-colourMap Magenta = A.Magenta
-colourMap White = A.White
+colourMap c = case c of
+              Red -> A.Red; Green -> A.Green; Yellow -> A.Yellow; Blue -> A.Blue; Magenta -> A.Magenta; White -> A.White
  
 gridToLists :: Grid a -> [[a]]
 gridToLists (Grid b) = chunksOf y (elems b)
@@ -70,20 +65,21 @@ floods = foldr1 (.) . map flood
 reset :: IO ()
 reset = A.clearScreen >> A.setCursorPosition 0 0
 
-ask :: Read a => String -> IO a
-ask s = putStrLn s >> readLn
-
 main :: IO ()
 main = do
-  n <- ask "Size?"
+  putStrLn "Size?"
+  n <- readLn
   start <- evalState (randomGrid n n) <$> newStdGen :: IO Board
-  evalStateT (forever test) (start, 0)
+  evalStateT (forever run) (start, 0)
 
-test :: StateT (Board, Int) IO ()
-test = do
+run :: StateT (Board, Int) IO ()
+run = do
   (current, count) <- get
-  inp <- liftIO (showBoard current >> print count >> readLn)
+  inp <- liftIO (showBoard current >> print count >> patientRead)
   put (flood inp current, count + 1)
+
+patientRead :: Read a => IO a
+patientRead = getLine >>= maybe patientRead return . readMaybe
 
 displayCell :: ((Int, Int), Colour) -> IO ()
 displayCell ((x,y),c) = do
@@ -95,5 +91,5 @@ showBoard :: Board -> IO ()
 showBoard (Grid b) = do
   reset
   mapM_ displayCell (assocs b)
-  A.setSGR [A.SetColor A.Foreground A.Vivid A.White]
+  A.setSGR [A.SetColor A.Foreground A.Dull A.White]
   A.cursorDownLine 1
