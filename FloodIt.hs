@@ -2,11 +2,11 @@
 
 -- TODO
 -- add more user help
--- remove unnecessary printing of boards
 -- modularise
 -- add targets/fail
 -- benchmark STArray against Array for implementing flood fill
 -- consider different layout options
+-- create a solver
 
 import qualified System.Console.ANSI as A
 import System.Random                       ( Random(..), RandomGen, newStdGen )
@@ -16,22 +16,19 @@ import Control.Monad.Trans.State.Strict    ( StateT, get, evalStateT, put )
 import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Data.List.Split                     ( chunksOf )
+import Control.Arrow
 
 data Colour = Red | Green | Yellow | Blue | Magenta | White
   deriving (Bounded, Enum, Eq, Read, Show)
 
 instance Random Colour where
   random = randomR (minBound,maxBound)
-  randomR (a,b) g =
-    case randomR (fromEnum a, fromEnum b) g of
-      (x, g') -> (toEnum x, g')
+  randomR (a,b) g = first toEnum (randomR (fromEnum a, fromEnum b) g)
 
 newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
+  deriving Show
 type Board = Grid Colour
 
-instance Show Board where
-  show g = showsGrid (gridToLists g) ""
- 
 colourMap :: Colour -> A.Color
 colourMap Red = A.Red
 colourMap Green = A.Green
@@ -40,12 +37,6 @@ colourMap Blue = A.Blue
 colourMap Magenta = A.Magenta
 colourMap White = A.White
  
-showsGrid :: [[Colour]] -> ShowS
-showsGrid g = tail . foldr1 (.) (map showsLine g)
-  where prepend t = ('\n':) . t
-        showsLine = prepend . foldr1 (.) . map showsColour
-        showsColour c = (A.setSGRCode [A.SetColor A.Foreground A.Dull (colourMap c)] ++) . ("██"++)
-
 gridToLists :: Grid a -> [[a]]
 gridToLists (Grid b) = chunksOf y (elems b)
   where y = snd (snd (bounds b))
