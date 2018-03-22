@@ -4,8 +4,10 @@
 -- fix colouring of move count
 -- add more user help
 -- switch to IO for printing board instead of codes (windows support)
--- split code into parts
+-- modularise
 -- add targets/fail
+-- benchmark STArray against Array for implementing flood fill
+-- consider different layout options
 
 import qualified System.Console.ANSI as A
 import System.Random                       ( Random(..), RandomGen )
