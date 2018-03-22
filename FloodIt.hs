@@ -9,22 +9,21 @@
 -- consider different layout options
 
 import qualified System.Console.ANSI as A
-import System.Random                       ( Random(..), RandomGen )
+import System.Random                       ( Random(..), RandomGen, newStdGen )
 import Control.Monad                       ( when, unless, replicateM, forever )
 import Control.Monad.State                 ( State, evalState, state, liftIO )
 import Control.Monad.Trans.State.Strict    ( StateT, get, evalStateT, put )
 import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Data.List.Split                     ( chunksOf )
-import System.Random                       ( newStdGen )
 
 data Colour = Red | Green | Yellow | Blue | Magenta | White
   deriving (Bounded, Enum, Eq, Read, Show)
 
 instance Random Colour where
-  random g = randomR (minBound,maxBound) g
+  random = randomR (minBound,maxBound)
   randomR (a,b) g =
-    case (randomR (fromEnum a, fromEnum b) g) of
+    case randomR (fromEnum a, fromEnum b) g of
       (x, g') -> (toEnum x, g')
 
 newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
@@ -64,8 +63,7 @@ flood newColour (Grid a) = Grid $ runSTArray $ do
   mArr <- thaw a
   targetColour <- readArray mArr (1, 1)
   unless (targetColour == newColour) $ do
-    let go node = do
-        when (inRange bound node) $ do
+    let go node = when (inRange bound node) $ do
           currentColour <- readArray mArr node
           when (currentColour == targetColour) $ do
             writeArray mArr node newColour
@@ -73,9 +71,7 @@ flood newColour (Grid a) = Grid $ runSTArray $ do
     go (1, 1)
   return mArr
   where bound = bounds a
-
-neighbours :: Num i => (i, i) -> [(i, i)]
-neighbours (x,y) = [(x,y+1), (x, y-1), (x-1,y), (x+1,y)]
+        neighbours (x,y) = [(x,y+1), (x, y-1), (x-1,y), (x+1,y)]
 
 floods :: Eq a => [a] -> Grid a -> Grid a
 floods = foldr1 (.) . map flood
@@ -89,7 +85,6 @@ ask s = putStrLn s >> readLn
 main :: IO ()
 main = do
   n <- ask "Size?"
-  reset
   start <- evalState (randomGrid n n) <$> newStdGen :: IO Board
   evalStateT (forever test) (start, 0)
 
@@ -99,12 +94,15 @@ test = do
   inp <- liftIO (showBoard current >> print count >> readLn)
   put (flood inp current, count + 1)
 
-display :: ((Int, Int), Colour) -> IO ()
-display ((x,y),c) = do
+displayCell :: ((Int, Int), Colour) -> IO ()
+displayCell ((x,y),c) = do
   A.setCursorPosition (x-1) (2*y-2)
   A.setSGR [A.SetColor A.Foreground A.Dull (colourMap c)]
   putStr "██"
-  A.setSGR [A.SetColor A.Foreground A.Vivid A.White]
 
 showBoard :: Board -> IO ()
-showBoard (Grid b) = reset >> mapM_ display (assocs b) >> putStrLn ""
+showBoard (Grid b) = do
+  reset
+  mapM_ displayCell (assocs b)
+  A.setSGR [A.SetColor A.Foreground A.Vivid A.White]
+  A.cursorDownLine 1
