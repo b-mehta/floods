@@ -1,9 +1,8 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 
 -- TODO
--- fix colouring of move count
 -- add more user help
--- switch to IO for printing board instead of codes (windows support)
+-- remove unnecessary printing of boards
 -- modularise
 -- add targets/fail
 -- benchmark STArray against Array for implementing flood fill
@@ -13,15 +12,14 @@ import qualified System.Console.ANSI as A
 import System.Random                       ( Random(..), RandomGen )
 import Control.Monad                       ( when, unless, replicateM, forever )
 import Control.Monad.State                 ( State, evalState, state, liftIO )
-import Control.Monad.Trans.State.Strict    ( StateT, modify', get, evalStateT )
-import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems )
+import Control.Monad.Trans.State.Strict    ( StateT, get, evalStateT, put )
+import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Data.List.Split                     ( chunksOf )
-import Control.Arrow                       ( (***) )
 import System.Random                       ( newStdGen )
 
 data Colour = Red | Green | Yellow | Blue | Magenta | White
-  deriving (Bounded, Enum, Eq, Read)
+  deriving (Bounded, Enum, Eq, Read, Show)
 
 instance Random Colour where
   random g = randomR (minBound,maxBound) g
@@ -97,6 +95,16 @@ main = do
 
 test :: StateT (Board, Int) IO ()
 test = do
-  current <- get
-  inp <- liftIO (reset >> print (fst current) >> print (snd current) >> readLn)
-  modify' (flood inp *** (+1))
+  (current, count) <- get
+  inp <- liftIO (showBoard current >> print count >> readLn)
+  put (flood inp current, count + 1)
+
+display :: ((Int, Int), Colour) -> IO ()
+display ((x,y),c) = do
+  A.setCursorPosition (x-1) (2*y-2)
+  A.setSGR [A.SetColor A.Foreground A.Dull (colourMap c)]
+  putStr "██"
+  A.setSGR [A.SetColor A.Foreground A.Vivid A.White]
+
+showBoard :: Board -> IO ()
+showBoard (Grid b) = reset >> mapM_ display (assocs b) >> putStrLn ""
