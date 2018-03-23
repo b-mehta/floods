@@ -1,3 +1,5 @@
+module Main where
+
 -- TODO
 -- add more user help
 -- modularise
@@ -92,4 +94,8 @@ showBoard (Grid b) = do
   reset
   mapM_ displayCell (assocs b)
   A.setSGR [A.SetColor A.Foreground A.Dull A.White]
-  A.cursorDownLine 1
+  A.cursorDownLine 2
+
+solved :: Eq a => Grid a -> Bool
+solved (Grid arr) = constant (elems arr)
+  where constant xs = all (==head xs) (tail xs)
