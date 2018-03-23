@@ -72,13 +72,14 @@ main = do
   putStrLn "Size?"
   n <- readLn
   start <- evalState (randomGrid n n) <$> newStdGen :: IO Board
-  evalStateT (forever run) (start, 0)
+  ans <- iterateUntilM (solved . fst) run' (start, 0)
+  print ans -- improve this
 
-run :: StateT (Board, Int) IO ()
-run = do
-  (current, count) <- get
-  inp <- liftIO (showBoard current >> print count >> patientRead)
-  put (flood inp current, count + 1)
+run' :: (Board, Int) -> IO (Board, Int)
+run' (b, c) = do
+  showBoard b >> print c
+  nextCol <- patientRead
+  return (flood nextCol b, c+1)
 
 patientRead :: Read a => IO a
 patientRead = getLine >>= maybe patientRead return . readMaybe

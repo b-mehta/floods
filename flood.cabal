@@ -57,7 +57,7 @@ executable flood
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.10 && <4.11, transformers >= 0.3, mtl >= 2.0, split >= 0.2, array >= 0.4, random >= 1.1, ansi-terminal >= 0.8
+  build-depends:       base >=4.10 && <4.11, transformers >= 0.3, mtl >= 2.0, split >= 0.2, array >= 0.4, random >= 1.1, ansi-terminal >= 0.8, monad-loops >= 0.4.2
   
   -- Directories containing source files.
   hs-source-dirs:      src
