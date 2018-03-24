@@ -10,10 +10,9 @@ module Main where
 
 import qualified System.Console.ANSI as A
 import System.Random                       ( Random(..), RandomGen, newStdGen )
-import Control.Monad                       ( when, unless, replicateM, forever )
-import Control.Monad.State                 ( State, evalState, state, liftIO )
-import Control.Monad.Trans.State.Strict    ( StateT, get, evalStateT, put )
-import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs )
+import Control.Monad                       ( when, unless, replicateM )
+import Control.Monad.State                 ( State, evalState, state )
+import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs, (!) )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Data.List.Split                     ( chunksOf )
 import Control.Arrow                       ( first )
@@ -80,7 +79,9 @@ run' :: (Board, Int) -> IO (Board, Int)
 run' (b, c) = do
   showBoard b >> print c
   nextCol <- patientRead
-  return (flood nextCol b, c+1)
+  if nextCol == (ungrid b ! (1,1))
+     then return (b, c)
+     else return (flood nextCol b, c+1)
 
 patientRead :: Read a => IO a
 patientRead = untilJust (readMaybe <$> getLine)
@@ -100,4 +101,4 @@ showBoard (Grid b) = do
 
 solved :: Eq a => Grid a -> Bool
 solved (Grid arr) = constant (elems arr)
-  where constant xs = all (==head xs) (tail xs)
+  where constant xs = all (== head xs) (tail xs)
