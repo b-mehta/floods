@@ -18,6 +18,7 @@ import Data.Array.ST                       ( readArray, writeArray, runSTArray, 
 import Data.List.Split                     ( chunksOf )
 import Control.Arrow                       ( first )
 import Text.Read                           ( readMaybe ) 
+import Control.Monad.Loops                 ( iterateUntilM, untilJust )
 
 data Colour = Red | Green | Yellow | Blue | Magenta | White
   deriving (Bounded, Enum, Eq, Read, Show)
@@ -72,8 +73,8 @@ main = do
   putStrLn "Size?"
   n <- readLn
   start <- evalState (randomGrid n n) <$> newStdGen :: IO Board
-  ans <- iterateUntilM (solved . fst) run' (start, 0)
-  print ans -- improve this
+  (final, steps) <- iterateUntilM (solved . fst) run' (start, 0)
+  showBoard final >> putStrLn ("Solved after " ++ show steps ++ " steps!")
 
 run' :: (Board, Int) -> IO (Board, Int)
 run' (b, c) = do
@@ -82,7 +83,7 @@ run' (b, c) = do
   return (flood nextCol b, c+1)
 
 patientRead :: Read a => IO a
-patientRead = getLine >>= maybe patientRead return . readMaybe
+patientRead = untilJust (readMaybe <$> getLine)
 
 displayCell :: ((Int, Int), Colour) -> IO ()
 displayCell ((x,y),c) = do
@@ -94,7 +95,7 @@ showBoard :: Board -> IO ()
 showBoard (Grid b) = do
   reset
   mapM_ displayCell (assocs b)
-  A.setSGR [A.SetColor A.Foreground A.Dull A.White]
+  A.setSGR [A.Reset]
   A.cursorDownLine 2
 
 solved :: Eq a => Grid a -> Bool
