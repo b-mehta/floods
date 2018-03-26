@@ -8,9 +8,10 @@ module Main where
 -- create a solver
 
 import Grid
+import Colour
 
 import qualified System.Console.ANSI as A
-import Data.Array.IArray                   ( elems, assocs, (!) )
+import Data.Array.IArray                   ( assocs, (!) )
 import Text.Read                           ( readMaybe )
 import Control.Monad.Loops                 ( iterateUntilM, iterateUntil, untilJust )
 

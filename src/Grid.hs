@@ -1,26 +1,14 @@
 module Grid where
 
-import System.Random                       ( newStdGen )
-import Control.Monad.State                 ( evalState )
-import System.Random                       ( Random(..), RandomGen, newStdGen )
-import Control.Arrow                       ( first )
-import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, assocs, (!) )
+import System.Random                       ( RandomGen, Random(random) )
+import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Control.Monad                       ( when, unless, replicateM )
-import Control.Monad.State                 ( State, evalState, state )
+import Control.Monad.State                 ( State, state )
 import Data.List.Split                     ( chunksOf )
-
-data Colour = Red | Green | Yellow | Blue | Magenta | White
-  deriving (Bounded, Enum, Eq, Read, Show)
-
-instance Random Colour where
-  random = randomR (minBound,maxBound)
-  randomR (a,b) g = first toEnum (randomR (fromEnum a, fromEnum b) g)
 
 newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
   deriving Show
-
-type Board = Grid Colour
 
 gridToLists :: Grid a -> [[a]]
 gridToLists (Grid b) = chunksOf y (elems b)
@@ -55,6 +43,3 @@ floods = foldr1 (.) . map flood
 solved :: Eq a => Grid a -> Bool
 solved (Grid arr) = constant (elems arr)
   where constant xs = all (== head xs) (tail xs)
-
-randomBoardIO :: Int -> Int -> IO Board
-randomBoardIO m n = evalState (randomGrid m n) <$> newStdGen
