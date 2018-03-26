@@ -1,18 +1,20 @@
-module Grid where
+module Grid (
+  Grid(..), randomGrid, flood, isSolved
+  ) where
 
 import System.Random                       ( RandomGen, Random(random) )
 import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Control.Monad                       ( when, unless, replicateM )
 import Control.Monad.State                 ( State, state )
-import Data.List.Split                     ( chunksOf )
+-- import Data.List.Split                     ( chunksOf )
 
 newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
   deriving Show
 
-gridToLists :: Grid a -> [[a]]
-gridToLists (Grid b) = chunksOf y (elems b)
-  where y = snd (snd (bounds b))
+-- gridToLists :: Grid a -> [[a]]
+-- gridToLists (Grid b) = chunksOf y (elems b)
+--   where y = snd (snd (bounds b))
 
 listsToGrid :: [[a]] -> Grid a
 listsToGrid l = Grid $ listArray ((1,1), (x,y)) (concat l)
@@ -37,9 +39,9 @@ flood newColour (Grid a) = Grid $ runSTArray $ do
   where bound = bounds a
         neighbours (x,y) = [(x,y+1), (x, y-1), (x-1,y), (x+1,y)]
 
-floods :: Eq a => [a] -> Grid a -> Grid a
-floods = foldr1 (.) . map flood
+-- floods :: Eq a => [a] -> Grid a -> Grid a
+-- floods = foldr1 (.) . map flood
 
-solved :: Eq a => Grid a -> Bool
-solved (Grid arr) = constant (elems arr)
+isSolved :: Eq a => Grid a -> Bool
+isSolved (Grid arr) = constant (elems arr)
   where constant xs = all (== head xs) (tail xs)

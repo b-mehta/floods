@@ -1,6 +1,6 @@
 module Colour where
   
-import Grid 
+import Grid                                ( Grid, randomGrid )
 import System.Random                       ( Random(..), newStdGen )
 import Control.Arrow                       ( first )
 import Control.Monad.State                 ( evalState )

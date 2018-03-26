@@ -7,8 +7,8 @@ module Main where
 -- consider different layout options
 -- create a solver
 
-import Grid
-import Colour
+import Grid                                ( Grid(..), flood, isSolved )
+import Colour                              ( Board, Colour(..), randomBoardIO )
 
 import qualified System.Console.ANSI as A
 import Data.Array.IArray                   ( assocs, (!) )
@@ -28,7 +28,7 @@ main = do
   putStrLn "Size?"
   n <- readLn
   start <- randomBoardIO n n
-  (final, steps) <- iterateUntilM (solved . fst) run' (start, 0)
+  (final, steps) <- iterateUntilM (isSolved . fst) run' (start, 0)
   showBoard final
   putStrLn ("Solved after " ++ show steps ++ " steps!")
 
