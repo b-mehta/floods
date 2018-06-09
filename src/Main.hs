@@ -30,19 +30,26 @@ main = do
   putStrLn "Size?"
   n <- readLn
   start <- randomBoardIO n n
-  (final, steps) <- iterateUntilM (isSolved . fst) step (start, 0)
-  showBoard (final, steps)
-  putStrLn ("Solved after " ++ show steps ++ " steps!")
+  (final, steps) <- iterateUntilM (isSolved . fst) (step (n+1)) (start, 0)
+  showBoard (n+1) (final, steps)
+  statusLine (n+1) ("Solved after " ++ show steps ++ " steps!")
 
-step :: GameState -> IO GameState
-step (b,c) = do
-  showBoard (b,c)
+step :: Int -> GameState -> IO GameState
+step t (b,c) = do
+  showBoard t (b,c)
   let currentCol = ungrid b ! (1,1)
-  nextCol <- iterateUntil (/= currentCol) patientRead
+  nextCol <- iterateUntil (/= currentCol) (patientRead t)
   return (flood nextCol b, c+1)
 
-patientRead :: Read a => IO a
-patientRead = untilJust (readMaybe <$> getLine)
+statusLine :: Int -> String -> IO ()
+statusLine n m = A.setCursorPosition n 0 >> putStrLn m
+
+patientRead :: Int -> IO Colour
+patientRead t = untilJustMsg (readMaybe <$> getLine) (statusLine t "Couldn't understand that colour, try again?")
+
+untilJustMsg :: Monad m => m (Maybe a) -> m () -> m a
+untilJustMsg m t = go
+  where go = m >>= maybe (t >> go) return
 
 displayCell :: ((Int, Int), Colour) -> IO ()
 displayCell ((x,y),c) = do
@@ -50,10 +57,9 @@ displayCell ((x,y),c) = do
   A.setSGR [A.SetColor A.Foreground A.Dull (colourMap c)]
   putStr "██"
 
-showBoard :: GameState -> IO ()
-showBoard ((Grid b),n) = do
+showBoard :: Int -> GameState -> IO ()
+showBoard t ((Grid b),n) = do
   reset
   mapM_ displayCell (assocs b)
   A.setSGR [A.Reset]
-  A.cursorDownLine 2
-  print n
+  statusLine t (show n)
