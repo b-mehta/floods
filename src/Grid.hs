@@ -1,5 +1,5 @@
 module Grid (
-  Grid(..), randomGrid, flood, isSolved
+  Grid(..), randomGrid, flood, isSolved, listsToGrid, neighbours
   ) where
 
 import System.Random                       ( RandomGen, Random(random) )
@@ -19,7 +19,7 @@ newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
 listsToGrid :: [[a]] -> Grid a
 listsToGrid l = Grid $ listArray ((1,1), (x,y)) (concat l)
   where x = length l
-        y = length (head l)
+        y = minimum . map length $ l
 
 randomGrid :: (Random a, RandomGen g) => Int -> Int -> State g (Grid a)
 randomGrid m n = listsToGrid <$> replicateM m (replicateM n (state random))
@@ -37,10 +37,9 @@ flood newColour (Grid a) = Grid $ runSTArray $ do
     go (1, 1)
   return mArr
   where bound = bounds a
-        neighbours (x,y) = [(x,y+1), (x, y-1), (x-1,y), (x+1,y)]
 
--- floods :: Eq a => [a] -> Grid a -> Grid a
--- floods = foldr1 (.) . map flood
+neighbours :: (Int,Int) -> [(Int,Int)]
+neighbours (x,y) = [(x,y+1), (x, y-1), (x-1,y), (x+1,y)]
 
 isSolved :: Eq a => Grid a -> Bool
 isSolved (Grid arr) = constant (elems arr)
