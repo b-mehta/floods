@@ -7,7 +7,7 @@ import Control.Monad.State                 ( evalState )
 
 type Board = Grid Colour
 
-data Colour = Red | Green | Yellow | Blue | Magenta | White
+data Colour = Red | Yellow | Green | Cyan | Blue | Violet
   deriving (Bounded, Enum, Eq, Read, Show)
 
 instance Random Colour where

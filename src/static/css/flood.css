@@ -1,0 +1,86 @@
+.center-div
+{
+  margin:auto;
+  text-align:center;
+}
+.inner-center
+{
+  display:inline-block;
+}
+.selector
+{
+  width:40px;
+  height:40px;
+  margin:12px;
+  cursor:pointer;
+  border:5px solid;
+}
+.red
+{
+  border:5px solid #BB0000;
+}
+.yellow
+{
+  border:5px solid #BBBB00;
+}
+.green
+{
+  border:5px solid darkgreen;
+}
+.cyan
+{
+  border:5px solid #00BBBB;
+}
+.blue
+{
+  border:5px solid darkblue;
+}
+.violet
+{
+  border:5px solid darkviolet;
+}
+.game-box
+{
+  padding:20px;
+  background:white;
+  border-radius:20px;
+}
+body
+{
+  background: radial-gradient(#FFFFFF, #C0D0E0) fixed;
+}
+.score
+{
+  font-size:20px;
+  font-family: Arial;
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 100%;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 105%;
+}
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent black transparent transparent;
+}
