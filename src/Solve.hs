@@ -1,11 +1,14 @@
-import Grid                                     (flood, Grid(..), neighbours, isSolved)
-import Colour                                   (Colour, randomBoardIO)
+module Solve
+  where
+
 import Data.Array.IArray                        ((!), bounds, inRange)
 import Data.Ord                                 (comparing)
 import Data.List                                (maximumBy, takeWhile, iterate)
 import qualified Data.Set as Set                (insert, notMember, empty)
 import Control.Monad.Trans.State                (modify', get, evalState)
-import Control.Monad
+
+import Grid                                     (flood, Grid(..), neighbours, isSolved)
+import Colour                                   (Colour)
 
 class (Enum a, Bounded a, Eq a) => Value a
 instance Value Colour
@@ -26,7 +29,7 @@ greedyArea = Strategy { play = snd . maximumBy (comparing fst) . areas
                       }
 
 cycleColour :: Value a => Strategy a
-cycleColour = Strategy { play = \b -> let current = ungrid b ! (1,1) in flood (loop current) b 
+cycleColour = Strategy { play = \b -> let current = ungrid b ! (1,1) in flood (loop current) b
                        , name = "Cycle colours"
                        }
 
@@ -53,9 +56,3 @@ area (Grid b) = evalState (go (1,1)) Set.empty
            rest <- traverse go (neighbours now)
            return (sum rest + 1)
          else return 0
-
-main :: IO ()
-main = replicateM_ 10 $
-  do
-    b <- randomBoardIO 100 100
-    print $ solution (play cycleColour) b

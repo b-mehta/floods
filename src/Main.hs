@@ -1,4 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
+module Main
+  where
+
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 import Control.Monad                            (replicateM, void)
@@ -14,7 +17,7 @@ import Colour                                   (Colour, randomBoardIO)
 import Solve                                    
 
 main :: IO ()
-main = startGUI defaultConfig {jsPort = Just 10000, jsStatic = Just "static"} setup
+main = startGUI defaultConfig {jsPort = Just 10000, jsStatic = Just "src/static"} setup
 
 strategies :: Value a => [Strategy a]
 strategies = [greedyArea, cycleColour]
