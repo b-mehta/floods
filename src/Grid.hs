@@ -1,12 +1,14 @@
 module Grid (
-  Grid(..), randomGrid, flood, isSolved, listsToGrid, neighbours
+  Grid(..), randomGrid, flood, flood', isSolved, listsToGrid, neighbours
   ) where
 
 import System.Random                       ( RandomGen, Random(random) )
-import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems )
+import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, (!), (//) )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Control.Monad                       ( when, unless, replicateM )
-import Control.Monad.State                 ( State, state )
+import Control.Monad.State
+-- import Data.Set (Set)
+-- import qualified Data.Set as S
 -- import Data.List.Split                     ( chunksOf )
 
 newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
@@ -38,7 +40,23 @@ flood newColour (Grid a) = Grid $ runSTArray $ do
   return mArr
   where bound = bounds a
 
-neighbours :: (Int,Int) -> [(Int,Int)]
+type Pos = (Int,Int)
+
+-- improve using Set, a single update (and maybe a sneaky intset)
+-- bounds check!!
+flood' :: Eq a => a -> Grid a -> Grid a
+flood' newColour (Grid a) = Grid $ run (1,1) a
+  where targetColour = a ! (1,1)
+        run node b = if b ! node == targetColour
+                        then let b0 = b // [(node, newColour)]
+                                 b1 = run (neighbours node !! 0) b0
+                                 b2 = run (neighbours node !! 1) b1
+                                 b3 = run (neighbours node !! 2) b2
+                                 b4 = run (neighbours node !! 3) b3
+                              in b4
+                         else b
+
+neighbours :: Pos -> [Pos]
 neighbours (x,y) = [(x,y+1), (x, y-1), (x-1,y), (x+1,y)]
 
 isSolved :: Eq a => Grid a -> Bool
