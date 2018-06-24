@@ -37,21 +37,21 @@ library
                        threepenny-gui >= 0.8
   hs-source-dirs:      src
 
--- benchmark timing
---   hs-source-dirs:      benchmark
---   main-is:             Bench.hs
---   type:                exitcode-stdio-1.0
---   other-modules:       Paths_flood
---   build-depends:       base,
---                        flood,
---                        gauge
---   default-language:    Haskell2010
---  
--- test-suite tests
---   hs-source-dirs:      test
---   main-is:             Tests.hs
---   type:                exitcode-stdio-1.0
---   other-modules:       Paths_flood
---   build-depends:       base,
---                        flood
---   default-language:    Haskell2010
+benchmark timing
+  hs-source-dirs:      benchmark
+  main-is:             Bench.hs
+  type:                exitcode-stdio-1.0
+  other-modules:       Paths_flood
+  build-depends:       base,
+                       flood,
+                       gauge
+  default-language:    Haskell2010
+ 
+test-suite tests
+  hs-source-dirs:      test
+  main-is:             Tests.hs
+  type:                exitcode-stdio-1.0
+  other-modules:       Paths_flood
+  build-depends:       base,
+                       flood
+  default-language:    Haskell2010

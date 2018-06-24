@@ -1,4 +1,4 @@
-module Solve
+module Solve (Strategy(..), Value, cycleColour, greedyArea, solution)
   where
 
 import Data.Array.IArray                        ((!), bounds, inRange)
@@ -7,7 +7,7 @@ import Data.List                                (maximumBy, takeWhile, iterate)
 import qualified Data.Set as Set                (insert, notMember, empty)
 import Control.Monad.Trans.State                (modify', get, evalState)
 
-import Grid                                     (flood, Grid(..), neighbours, isSolved)
+import Grid                                     (flood, Grid(..), isSolved, area)
 import Colour                                   (Colour)
 
 class (Enum a, Bounded a, Eq a) => Value a
@@ -44,15 +44,3 @@ loop c
   | c == maxBound = minBound
   | otherwise     = succ c
 
-area :: Eq a => Grid a -> Int
-area (Grid b) = evalState (go (1,1)) Set.empty
-  where
-    target = b ! (1,1)
-    go now = do
-      seen <- get
-      if inRange (bounds b) now && now `Set.notMember` seen && b ! now == target
-         then do
-           modify' (Set.insert now)
-           rest <- traverse go (neighbours now)
-           return (sum rest + 1)
-         else return 0
