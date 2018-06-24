@@ -1,11 +1,9 @@
 module Solve (Strategy(..), Value, cycleColour, greedyArea, solution)
   where
 
-import Data.Array.IArray                        ((!), bounds, inRange)
+import Data.Array.IArray                        ((!))
 import Data.Ord                                 (comparing)
 import Data.List                                (maximumBy, takeWhile, iterate)
-import qualified Data.Set as Set                (insert, notMember, empty)
-import Control.Monad.Trans.State                (modify', get, evalState)
 
 import Grid                                     (flood, Grid(..), isSolved, area)
 import Colour                                   (Colour)

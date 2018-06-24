@@ -1,4 +1,4 @@
-module DisjointSet
+module DisjointSet (discrete, findRoot, getRoot, getSize, union, toSets)
   where
 
 import Data.Map.Strict (Map)
@@ -12,9 +12,6 @@ data Element a = Element { par :: a
                          deriving (Eq, Show)
 
 type DisjointSet a = Map a (Element a)
-
--- look :: Ord a => a -> Lens' (DisjointSet a) (Element a)
--- look x = at x . non defaultEntry
 
 discrete :: Ord a => [a] -> DisjointSet a
 discrete xs = M.fromList [(x, Element x 1) | x <- xs]

@@ -6,7 +6,7 @@ import System.Random                       ( RandomGen, Random(random) )
 import Data.Array.IArray                   ( Array, bounds, inRange, listArray, elems, (!), (//) )
 import Data.Array.ST                       ( readArray, writeArray, runSTArray, thaw )
 import Control.Monad                       ( when, unless, replicateM )
-import Control.Monad.State
+import Control.Monad.Trans.State           ( State, evalState, execState, modify, get, state )
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Foldable
@@ -70,7 +70,7 @@ flood3 newColour (Grid a) = Grid go
         run node = do
           used <- get
           when (node `Set.notMember` used && inRange (bounds a) node && a ! node == targetColour) $ do
-            modify' (Set.insert node)
+            modify (Set.insert node)
             traverse_ run (neighbours node)
 
 neighbours :: Pos -> [Pos]
@@ -84,11 +84,12 @@ area :: Eq a => Grid a -> Int
 area (Grid b) = evalState (go (1,1)) Set.empty
   where
     target = b ! (1,1)
+    go :: Pos -> State (Set Pos) Int
     go now = do
       seen <- get
       if inRange (bounds b) now && now `Set.notMember` seen && b ! now == target
          then do
-           modify' (Set.insert now)
+           modify (Set.insert now)
            rest <- traverse go (neighbours now)
            return (sum rest + 1)
          else return 0
