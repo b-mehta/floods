@@ -49,6 +49,7 @@ startGame n = do
           w <- getWindow computerScore
           runUI w $ void $ do
             element computerScore # set text (show g)
+
         UI.new #. "score tooltip"
                # set children [label, computerScore, tooltip]
                # set style [("color", "grey")]

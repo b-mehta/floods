@@ -12,20 +12,22 @@ cabal-version:       >=1.10
 
 executable flood
   main-is:             Main.hs
-  other-modules:       Colour, Grid, Solve
+  other-modules:       Paths_flood
   build-depends:       base >= 4.8,
                        mtl >= 2.0,
                        array >= 0.4,
                        random >= 1.1,
                        containers >= 0.5,
                        transformers >= 0.5,
-                       threepenny-gui >= 0.8
-  hs-source-dirs:      src
+                       threepenny-gui >= 0.8,
+                       flood
+  hs-source-dirs:      app
   default-language:    Haskell2010
 
 library
-  exposed-modules:     Colour, Grid, Solve
+  exposed-modules:     Colour, Grid, Solve, DisjointSet
   default-language:    Haskell2010
+  other-modules:       Paths_flood
   build-depends:       base >= 4.8,
                        mtl >= 2.0,
                        array >= 0.4,
@@ -35,19 +37,21 @@ library
                        threepenny-gui >= 0.8
   hs-source-dirs:      src
 
-benchmark timing
-  hs-source-dirs:      benchmark
-  main-is:             Bench.hs
-  type:                exitcode-stdio-1.0
-  build-depends:       base,
-                       flood,
-                       gauge
-  default-language:    Haskell2010
- 
-test-suite tests
-  hs-source-dirs:      test-suite
-  main-is:             Tests.hs
-  type:                exitcode-stdio-1.0
-  build-depends:       base,
-                       flood
-  default-language:    Haskell2010
+-- benchmark timing
+--   hs-source-dirs:      benchmark
+--   main-is:             Bench.hs
+--   type:                exitcode-stdio-1.0
+--   other-modules:       Paths_flood
+--   build-depends:       base,
+--                        flood,
+--                        gauge
+--   default-language:    Haskell2010
+--  
+-- test-suite tests
+--   hs-source-dirs:      test
+--   main-is:             Tests.hs
+--   type:                exitcode-stdio-1.0
+--   other-modules:       Paths_flood
+--   build-depends:       base,
+--                        flood
+--   default-language:    Haskell2010
