@@ -1,5 +1,5 @@
 module Grid (
-  Grid(..), randomGrid, flood, flood2, flood3, isSolved, listsToGrid, area
+  Grid(..), randomGrid, flood, flood2, flood3, isSolved, area
   ) where
 
 import System.Random                       ( RandomGen, Random(random) )
@@ -15,17 +15,8 @@ import Data.Foldable
 newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
   deriving Show
 
--- gridToLists :: Grid a -> [[a]]
--- gridToLists (Grid b) = chunksOf y (elems b)
---   where y = snd (snd (bounds b))
-
-listsToGrid :: [[a]] -> Grid a
-listsToGrid l = Grid $ listArray ((1,1), (x,y)) (concat l)
-  where x = length l
-        y = minimum . map length $ l
-
 randomGrid :: (Random a, RandomGen g) => Int -> Int -> State g (Grid a)
-randomGrid m n = listsToGrid <$> replicateM m (replicateM n (state random))
+randomGrid m n = (Grid . listArray ((1,1), (m,n))) <$> replicateM (m*n) (state random)
 
 flood :: Eq a => a -> Grid a -> Grid a
 flood newColour (Grid a) = Grid $ runSTArray $ do

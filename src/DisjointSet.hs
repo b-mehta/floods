@@ -1,7 +1,7 @@
-module DisjointSet (discrete, findRoot, getRoot, getSize, union, toSets)
+module DisjointSet (discrete, findRoot, getRoot, getSize, union, toSets, DisjointSet, addSingleton, getLabel, findLabel, mergeUnsafe) 
   where
 
-import Data.Map.Strict (Map)
+import Data.Map.Strict (Map, (!))
 import qualified Data.Map.Strict as M
 import Control.Monad.Trans.State
 import Control.Monad
@@ -14,7 +14,10 @@ data Element a = Element { par :: a
 type DisjointSet a = Map a (Element a)
 
 discrete :: Ord a => [a] -> DisjointSet a
-discrete xs = M.fromList [(x, Element x 1) | x <- xs]
+discrete = foldr addSingleton M.empty
+
+addSingleton :: Ord a => a -> DisjointSet a -> DisjointSet a
+addSingleton x = M.insert x (Element x 1)
 
 findRoot :: Ord a => a -> State (DisjointSet a) a
 findRoot x = do
@@ -39,10 +42,10 @@ setSize :: Ord a => a -> Int -> State (DisjointSet a) ()
 setSize x n = modify' (M.adjust (\c -> c {siz = n}) x)
 
 getParent :: Ord a => a -> DisjointSet a -> a
-getParent x = par . (M.! x)
+getParent x = par . (! x)
 
 getSize :: Ord a => a -> DisjointSet a -> Int
-getSize x = siz . (M.! x)
+getSize x = siz . (! x)
 
 union :: Ord a => a -> a -> State (DisjointSet a) ()
 union x y = do
@@ -66,3 +69,36 @@ toSets s = map reverse . M.elems $ M.fromListWith (++) [(v,[k]) | (k,v) <- thing
 things :: Ord a => DisjointSet a -> [(a, a)]
 things s = zip vals $ evalState (traverse findRoot vals) s
   where vals = M.keys s
+
+type LabelledSet a b = (DisjointSet a, Map a b)
+
+getLabel :: Ord a => a -> LabelledSet a b -> b
+getLabel x (s,m) = m ! getRoot x s
+
+findLabel :: Ord a => a -> State (LabelledSet a b) b
+findLabel x = do
+  (s,m) <- get
+  let (p,s') = runState (findRoot x) s
+  put (s',m)
+  return $ m ! p
+
+-- merges both sets, labelling with one of the two originals
+mergeUnsafe :: Ord a => a -> a -> State (LabelledSet a b) ()
+mergeUnsafe x y = do
+  (s,m) <- get
+  let ((x',y'),s') = runState ((,) <$> findRoot x <*> findRoot y) s
+  let (z,s'') = runState (union x y >> findRoot x) s'
+  let m' = if z == x'
+             then M.delete y' m
+             else M.delete x' m
+  put (s'',m')
+
+mergeResult :: Ord a => a -> a -> b -> State (LabelledSet a b) ()
+mergeResult x y c = do
+  (s,m) <- get
+  let ((x',y'),s') = runState ((,) <$> findRoot x <*> findRoot y) s
+  let (z,s'') = runState (union x y >> findRoot x) s'
+  let m' = if z == x'
+             then M.insert x' c . M.delete y' $ m
+             else M.insert y' c . M.delete x' m
+  put (s'',m')
