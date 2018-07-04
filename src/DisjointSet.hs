@@ -1,27 +1,33 @@
-module DisjointSet (discrete, findRoot, getRoot, getSize, union, toSets, DisjointSet, addSingleton, getLabel, findLabel, mergeUnsafe) 
+{-# LANGUAGE ApplicativeDo, FlexibleContexts #-}
+module DisjointSet
   where
 
 import Data.Map.Strict (Map, (!))
 import qualified Data.Map.Strict as M
-import Control.Monad.Trans.State
 import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.State.Lazy
+import Control.Monad.Trans.Maybe
+import Data.Foldable
+-- import Control.Applicative
 
 data Element a = Element { par :: a
                          , siz :: Int
                          }
                          deriving (Eq, Show)
 
-type DisjointSet a = Map a (Element a)
+type DS a = Map a (Element a)
+type DisjointSet a = State (DS a)
 
-discrete :: Ord a => [a] -> DisjointSet a
+discrete :: Ord a => [a] -> DS a
 discrete = foldr addSingleton M.empty
 
-addSingleton :: Ord a => a -> DisjointSet a -> DisjointSet a
+addSingleton :: Ord a => a -> DS a -> DS a
 addSingleton x = M.insert x (Element x 1)
 
-findRoot :: Ord a => a -> State (DisjointSet a) a
+findRoot :: Ord a => a -> DisjointSet a a
 findRoot x = do
-  p <- gets (getParent x)
+  p <- getParent x
   if (p == x)
      then return p
      else do
@@ -29,25 +35,19 @@ findRoot x = do
        setParent x p'
        return p'
 
-getRoot :: Ord a => a -> DisjointSet a -> a
-getRoot x s
-  | x == p    = x
-  | otherwise = getRoot p s
-  where p = getParent x s
-
-setParent :: Ord a => a -> a -> State (DisjointSet a) ()
+setParent :: Ord a => a -> a -> DisjointSet a ()
 setParent x y = modify' (M.adjust (\c -> c {par = y}) x)
 
-setSize :: Ord a => a -> Int -> State (DisjointSet a) ()
+setSize :: Ord a => a -> Int -> DisjointSet a ()
 setSize x n = modify' (M.adjust (\c -> c {siz = n}) x)
 
-getParent :: Ord a => a -> DisjointSet a -> a
-getParent x = par . (! x)
+getParent :: Ord a => a -> DisjointSet a a
+getParent x = gets $ par . (! x)
 
-getSize :: Ord a => a -> DisjointSet a -> Int
-getSize x = siz . (! x)
+getSize :: Ord a => a -> DisjointSet a Int
+getSize x = gets $ siz . (! x)
 
-union :: Ord a => a -> a -> State (DisjointSet a) ()
+union :: Ord a => a -> a -> DisjointSet a ()
 union x y = do
   xRoot <- findRoot x
   yRoot <- findRoot y
@@ -63,42 +63,79 @@ union x y = do
        then go yr xr
        else go xr yr
 
-toSets :: Ord a => DisjointSet a -> [[a]]
-toSets s = map reverse . M.elems $ M.fromListWith (++) [(v,[k]) | (k,v) <- things s]
+toSets :: Ord a => DisjointSet a [[a]]
+toSets = map reverse . M.elems <$> helper
 
-things :: Ord a => DisjointSet a -> [(a, a)]
-things s = zip vals $ evalState (traverse findRoot vals) s
-  where vals = M.keys s
+helper :: Ord a => DisjointSet a (Map a [a])
+helper = do
+  vals <- gets M.keys
+  roots <- traverse findRoot vals
+  return $ M.fromListWith (++) [(v,[k]) | (k,v) <- zip vals roots]
 
-type LabelledSet a b = (DisjointSet a, Map a b)
+type LS a b = StateT (Map a b) (DisjointSet a)
+type LabelledSet a b = State (DS a, Map a b)
 
-getLabel :: Ord a => a -> LabelledSet a b -> b
-getLabel x (s,m) = m ! getRoot x s
+findLabel :: Ord a => a -> LS a b b
+findLabel = fmap snd . findRootAndLabel
 
-findLabel :: Ord a => a -> State (LabelledSet a b) b
-findLabel x = do
-  (s,m) <- get
-  let (p,s') = runState (findRoot x) s
-  put (s',m)
-  return $ m ! p
+mergeHelper :: Ord a => a -> a -> MaybeT (LS a b) a
+mergeHelper x y = do
+  (xRoot,yRoot) <- lift . lift $ (,) <$> findRoot x <*> findRoot y
+  guard (xRoot /= yRoot)
+  z <- lift . lift $ union x y >> findRoot x
+  modify $ M.delete $
+    if z == xRoot
+       then yRoot
+       else xRoot
+  return z
 
 -- merges both sets, labelling with one of the two originals
-mergeUnsafe :: Ord a => a -> a -> State (LabelledSet a b) ()
-mergeUnsafe x y = do
-  (s,m) <- get
-  let ((x',y'),s') = runState ((,) <$> findRoot x <*> findRoot y) s
-  let (z,s'') = runState (union x y >> findRoot x) s'
-  let m' = if z == x'
-             then M.delete y' m
-             else M.delete x' m
-  put (s'',m')
+mergeUnsafe :: Ord a => a -> a -> LS a b ()
+mergeUnsafe x y = void $ runMaybeT $ mergeHelper x y
 
-mergeResult :: Ord a => a -> a -> b -> State (LabelledSet a b) ()
-mergeResult x y c = do
-  (s,m) <- get
-  let ((x',y'),s') = runState ((,) <$> findRoot x <*> findRoot y) s
-  let (z,s'') = runState (union x y >> findRoot x) s'
-  let m' = if z == x'
-             then M.insert x' c . M.delete y' $ m
-             else M.insert y' c . M.delete x' m
-  put (s'',m')
+mergeResult :: Ord a => a -> a -> b -> LS a b ()
+mergeResult x y c = void $ runMaybeT $ mergeHelper x y >>= modify . (`M.insert` c)
+
+mergeSame :: (Ord a, Eq b) => a -> a -> LS a b ()
+mergeSame x y = do
+  equal <- (==) <$> findLabel x <*> findLabel y
+  when equal $ mergeUnsafe x y
+
+-- toLSs :: Ord a => LS a b [([a],b)]
+findRootAndLabel :: Ord a => a -> LS a b (a,b)
+findRootAndLabel x = do
+  p <- lift $ findRoot x
+  l <- gets (!p)
+  return (p,l)
+
+wrap :: LS a b c -> LabelledSet a b c
+wrap f = state $ \(s,m) ->
+  let ((c,m'),s') = runState (runStateT f m) s
+   in (c,(s',m'))
+
+toLabelledSets :: Ord a => LS a b [([a], b)]
+toLabelledSets = do
+  rootedSets <- lift helper
+  m <- get
+  return [(reverse vals, label) | (root,vals) <- M.toAscList rootedSets, let label = m ! root]
+
+type Graph a = [(a,[a])]
+
+discreteLabels' :: Ord a => [(a,b)] -> (DS a, Map a b)
+discreteLabels' assign = (discrete $ fst <$> assign, M.fromAscList assign)
+
+fromLabelledElements' :: (Ord a, Eq b) => Graph a -> [(a,b)] -> (DS a, Map a b)
+fromLabelledElements' gr = execState (wrap combine) . discreteLabels'
+  where combine = traverse_ (uncurry mergeSame) [(x,y) | (x,ys) <- gr, y <- ys]
+
+lineGraph :: Int -> Graph Int
+lineGraph n = [(i, adj i) | i <- [1..n]]
+  where adj i
+          | i == 1 = [2]
+          | i == n = [n-1]
+          | otherwise = [i-1, i+1]
+
+gridGraph :: Int -> Int -> Graph (Int,Int)
+gridGraph m n = [(k, adj k) | i <- [1..m], j <- [1..n], let k = (i,j)]
+  where adj (i,j) = filter inRange [(i-1, j), (i, j-1), (i, j+1), (i+1, j)]
+        inRange (i,j) = i >= 1 && i <= m && j >= 1 && j <= n
