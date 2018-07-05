@@ -1,5 +1,5 @@
 {-# LANGUAGE ApplicativeDo #-}
-module DisjointSet
+module DisjointSet (flood, fromLabelledElements', gridGraph, findLabel)
   where
 
 import Data.Map.Strict                          ( Map, (!) )
@@ -79,8 +79,8 @@ type AdjGraph a = Map a (Set a)
 type LS a b = StateT (Map a b, AdjGraph a) (DisjointSet a)
 type LabelledSet a b = State (DS a, Map a b, AdjGraph a)
 
-findLabel :: Ord a => a -> LS a b b
-findLabel = fmap snd . findRootAndLabel
+findLabelLS :: Ord a => a -> LS a b b
+findLabelLS = fmap snd . findRootAndLabel
 
 mergeHelper :: Ord a => a -> a -> MaybeT (LS a b) a
 mergeHelper x y = do
@@ -109,7 +109,7 @@ mergeResult x y c = void $ runMaybeT $ mergeHelper x y >>= modify' . first . (`M
 
 mergeSame :: (Ord a, Eq b) => a -> a -> LS a b ()
 mergeSame x y = do
-  equal <- (==) <$> findLabel x <*> findLabel y
+  equal <- (==) <$> findLabelLS x <*> findLabelLS y
   when equal $ mergeUnsafe x y
 
 findRootAndLabel :: Ord a => a -> LS a b (a,b)
@@ -152,11 +152,17 @@ gridGraph m n = [(k, S.fromDistinctAscList $ adj k) | i <- [1..m], j <- [1..n], 
   where adj (i,j) = filter inRange [(i-1, j), (i, j-1), (i, j+1), (i+1, j)]
         inRange (i,j) = i >= 1 && i <= m && j >= 1 && j <= n
 
-flood' :: (Ord a, Eq b) => a -> b -> LS a b Int
-flood' x c = do
+floodLS :: (Ord a, Eq b) => a -> b -> LS a b Int
+floodLS x c = do
   root <- lift $ findRoot x
   (col, neigh) <- gets ((!root) *** (!root)) 
   when (c /= col) $ do
     (m,_) <- get
     sequence_ [mergeResult x y c | y <- S.toList neigh, m ! y == c]
   lift $ getSize x
+
+flood :: (Ord a, Eq b) => a -> b -> LabelledSet a b Int
+flood x y = wrap $ floodLS x y
+
+findLabel :: Ord a => a -> LabelledSet a b b
+findLabel x = wrap $ findLabelLS x
