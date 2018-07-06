@@ -1,0 +1,64 @@
+name:                flood
+version:             0.1.0.0
+github:              "b-mehta/floods"
+license:             MIT
+author:              "Bhavik Mehta"
+maintainer:          "bhavikmehta8@gmail.com"
+copyright:           "MIT license"
+category:            Game
+synopsis:            Implementation of the popular game Flood-It!
+
+description:         Please see the README on GitHub at <https://github.com/b-mehta/floods#readme>
+
+extra-source-files:
+  # - README.md
+- ChangeLog.md
+
+
+dependencies:
+- base >= 4.8
+- mtl >= 2.0
+- array >= 0.4
+- random >= 1.1
+- containers >= 0.5
+- transformers >= 0.5
+- threepenny-gui >= 0.8
+- hashable >= 1.2
+- unordered-containers >= 0.2
+- monad-loops >= 0.4
+
+library:
+  source-dirs: src
+  exposed-modules: 
+    - Colour
+    - Grid
+    - Solve
+    - DisjointSet
+    - Grid2
+
+executables:
+  flood:
+    main:                Main.hs
+    source-dirs:         app
+    dependencies:
+    - flood
+      
+benchmarks:
+  flood-bench:
+    main: Bench.hs
+    source-dirs: benchmark
+    dependencies:
+      - flood
+      - gauge >= 0.2
+      - deepseq >= 1.4
+
+# tests:
+#   flood-test:
+#     main:                Spec.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - count

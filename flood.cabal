@@ -1,57 +1,93 @@
-name:                flood
-version:             0.1.0.0
-synopsis:            Implementation of the popular game Flood-It!
-license:             MIT
-license-file:        LICENSE
-author:              Bhavik Mehta
-maintainer:          bhavikmehta8@gmail.com
-category:            Game
-build-type:          Simple
-extra-source-files:  ChangeLog.md
-cabal-version:       >=1.10
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 6f57a687a72b97afa2e9f1f3617ca7a29b421dc8cdf6762a9b53f8f30448aacd
 
-executable flood
-  main-is:             Main.hs
-  other-modules:       Paths_flood
-  build-depends:       base >= 4.8,
-                       mtl >= 2.0,
-                       array >= 0.4,
-                       random >= 1.1,
-                       containers >= 0.5,
-                       transformers >= 0.5,
-                       threepenny-gui >= 0.8,
-                       flood
-  hs-source-dirs:      app
-  default-language:    Haskell2010
+name:           flood
+version:        0.1.0.0
+synopsis:       Implementation of the popular game Flood-It!
+description:    Please see the README on GitHub at <https://github.com/b-mehta/floods#readme>
+category:       Game
+homepage:       https://github.com/b-mehta/floods#readme
+bug-reports:    https://github.com/b-mehta/floods/issues
+author:         Bhavik Mehta
+maintainer:     bhavikmehta8@gmail.com
+copyright:      MIT license
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/b-mehta/floods
 
 library
-  exposed-modules:     Colour, Grid, Solve, DisjointSet, Grid2
-  default-language:    Haskell2010
-  other-modules:       Paths_flood
-  build-depends:       base >= 4.8,
-                       mtl >= 2.0,
-                       array >= 0.4,
-                       random >= 1.1,
-                       containers >= 0.5,
-                       transformers >= 0.5,
-                       threepenny-gui >= 0.8
-  hs-source-dirs:      src
+  exposed-modules:
+      Colour
+      Grid
+      Solve
+      DisjointSet
+      Grid2
+  other-modules:
+      Paths_flood
+  hs-source-dirs:
+      src
+  build-depends:
+      array >=0.4
+    , base >=4.8
+    , containers >=0.5
+    , hashable >=1.2
+    , monad-loops >=0.4
+    , mtl >=2.0
+    , random >=1.1
+    , threepenny-gui >=0.8
+    , transformers >=0.5
+    , unordered-containers >=0.2
+  default-language: Haskell2010
 
-benchmark timing
-  hs-source-dirs:      benchmark
-  main-is:             Bench.hs
-  type:                exitcode-stdio-1.0
-  other-modules:       Paths_flood
-  build-depends:       base,
-                       flood,
-                       gauge
-  default-language:    Haskell2010
- 
-test-suite tests
-  hs-source-dirs:      test
-  main-is:             Tests.hs
-  type:                exitcode-stdio-1.0
-  other-modules:       Paths_flood
-  build-depends:       base,
-                       flood
-  default-language:    Haskell2010
+executable flood
+  main-is: Main.hs
+  other-modules:
+      Paths_flood
+  hs-source-dirs:
+      app
+  build-depends:
+      array >=0.4
+    , base >=4.8
+    , containers >=0.5
+    , flood
+    , hashable >=1.2
+    , monad-loops >=0.4
+    , mtl >=2.0
+    , random >=1.1
+    , threepenny-gui >=0.8
+    , transformers >=0.5
+    , unordered-containers >=0.2
+  default-language: Haskell2010
+
+benchmark flood-bench
+  type: exitcode-stdio-1.0
+  main-is: Bench.hs
+  other-modules:
+      Paths_flood
+  hs-source-dirs:
+      benchmark
+  build-depends:
+      array >=0.4
+    , base >=4.8
+    , containers >=0.5
+    , deepseq >=1.4
+    , flood
+    , gauge >=0.2
+    , hashable >=1.2
+    , monad-loops >=0.4
+    , mtl >=2.0
+    , random >=1.1
+    , threepenny-gui >=0.8
+    , transformers >=0.5
+    , unordered-containers >=0.2
+  default-language: Haskell2010
