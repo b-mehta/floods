@@ -4,6 +4,8 @@ module Main
 
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
+import System.Environment                       (lookupEnv)
+import Data.Maybe                               (maybe)
 import Control.Monad                            (replicateM, void)
 import Data.IORef                               (modifyIORef', newIORef, readIORef)
 import Data.Array.IArray                        ((!))
@@ -17,7 +19,9 @@ import Colour                                   (Colour, randomBoardIO)
 import Solve                                    
 
 main :: IO ()
-main = startGUI defaultConfig {jsPort = Just 10000, jsStatic = Just "src/static"} setup
+main = do
+  port <- maybe 10000 read <$> lookupEnv "PORT"
+  startGUI defaultConfig {jsPort = Just port, jsStatic = Just "src/static"} setup
 
 strategies :: Value a => [Strategy a]
 strategies = [greedyArea, cycleColour]
