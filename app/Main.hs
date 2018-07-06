@@ -21,6 +21,7 @@ import Solve
 main :: IO ()
 main = do
   port <- maybe 10000 read <$> lookupEnv "PORT"
+  putStrLn "running..."
   startGUI defaultConfig {jsPort = Just port, jsStatic = Just "src/static"} setup
 
 strategies :: Value a => [Strategy a]
@@ -28,6 +29,7 @@ strategies = [greedyArea, cycleColour]
 
 startGame :: Int -> UI Element
 startGame n = do
+  liftIO $ putStrLn "starting game"
   game <- liftIO $ newIORef =<< randomBoardIO n n
   score <- liftIO $ newIORef 0
 
@@ -97,6 +99,7 @@ setColour col = set style [("background", show col)]
 
 setup :: Window -> UI ()
 setup window = do
+  liftIO $ putStrLn "starting setup"
   UI.addStyleSheet window "flood.css"
   return window # set title "Flood it!"
 
