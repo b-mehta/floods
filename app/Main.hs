@@ -5,6 +5,7 @@ module Main
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 import System.Environment                       (lookupEnv)
+import System.IO
 import Data.Maybe                               (maybe)
 import Control.Monad                            (replicateM, void)
 import Data.IORef                               (modifyIORef', newIORef, readIORef)
@@ -18,10 +19,14 @@ import Grid                                     (flood1, Grid(..))
 import Colour                                   (Colour, randomBoardIO)
 import Solve                                    
 
+putStrErr :: String -> IO ()
+putStrErr = hPutStrLn stderr
+
 main :: IO ()
 main = do
+  putStrErr "running..."
   port <- maybe 10000 read <$> lookupEnv "PORT"
-  putStrLn "running..."
+  putStrErr ("got port " ++ show port)
   startGUI defaultConfig {jsPort = Just port, jsStatic = Just "src/static"} setup
 
 strategies :: Value a => [Strategy a]
@@ -29,7 +34,7 @@ strategies = [greedyArea, cycleColour]
 
 startGame :: Int -> UI Element
 startGame n = do
-  liftIO $ putStrLn "starting game"
+  liftIO $ putStrErr "starting game"
   game <- liftIO $ newIORef =<< randomBoardIO n n
   score <- liftIO $ newIORef 0
 
@@ -99,7 +104,7 @@ setColour col = set style [("background", show col)]
 
 setup :: Window -> UI ()
 setup window = do
-  liftIO $ putStrLn "starting setup"
+  liftIO $ putStrErr "starting setup"
   UI.addStyleSheet window "flood.css"
   return window # set title "Flood it!"
 
