@@ -12,7 +12,7 @@ import Control.Monad.Trans                      (liftIO)
 import Control.Concurrent                       (forkIO)
 import Control.Exception                        (evaluate)
 
-import Grid                                     (flood, Grid(..))
+import Grid                                     (flood1, Grid(..))
 import Colour                                   (Colour, randomBoardIO)
 import Solve                                    
 
@@ -74,7 +74,7 @@ startGame n = do
         cell <- UI.new #. ("inner-center selector " ++ (toLower <$> show colour))
                        # setColour colour
         on UI.mousedown cell $ \_ -> do
-          liftIO (modifyIORef' game (flood colour))
+          liftIO (modifyIORef' game (flood1 colour))
           liftIO (modifyIORef' score (+1))
           redrawGrid
         return cell

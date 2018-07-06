@@ -1,5 +1,5 @@
 module Grid (
-  Grid(..), randomGrid, flood, flood2, flood3, isSolved, area
+  Grid(..), randomGrid, flood1, flood2, flood3, isSolved, area
   ) where
 
 import System.Random                       ( RandomGen, Random(random) )
@@ -18,8 +18,8 @@ newtype Grid a = Grid { ungrid :: Array (Int, Int) a }
 randomGrid :: (Random a, RandomGen g) => Int -> Int -> State g (Grid a)
 randomGrid m n = (Grid . listArray ((1,1), (m,n))) <$> replicateM (m*n) (state random)
 
-flood :: Eq a => a -> Grid a -> Grid a
-flood newColour (Grid a) = Grid $ runSTArray $ do
+flood1 :: Eq a => a -> Grid a -> Grid a
+flood1 newColour (Grid a) = Grid $ runSTArray $ do
   mArr <- thaw a
   targetColour <- readArray mArr (1, 1)
   unless (targetColour == newColour) $ do

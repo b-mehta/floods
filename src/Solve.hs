@@ -5,7 +5,7 @@ import Data.Array.IArray                        ((!))
 import Data.Ord                                 (comparing)
 import Data.List                                (maximumBy, takeWhile, iterate)
 
-import Grid                                     (flood, Grid(..), isSolved, area)
+import Grid                                     (flood1, Grid(..), isSolved, area)
 import Colour                                   (Colour)
 
 class (Enum a, Bounded a, Eq a) => Value a
@@ -27,7 +27,7 @@ greedyArea = Strategy { play = snd . maximumBy (comparing fst) . areas
                       }
 
 cycleColour :: Value a => Strategy a
-cycleColour = Strategy { play = \b -> let current = ungrid b ! (1,1) in flood (loop current) b
+cycleColour = Strategy { play = \b -> let current = ungrid b ! (1,1) in flood1 (loop current) b
                        , name = "Cycle colours"
                        }
 
@@ -35,7 +35,7 @@ areas :: Value a => Grid a -> [(Int, Grid a)]
 areas = map (\(_, t) -> (area t, t)) . step
 
 step :: Value a => Grid a -> [(a, Grid a)]
-step b = [(col, flood col b) | col <- [minBound..maxBound], col /= ungrid b ! (1,1)]
+step b = [(col, flood1 col b) | col <- [minBound..maxBound], col /= ungrid b ! (1,1)]
 
 loop :: Value a => a -> a
 loop c
